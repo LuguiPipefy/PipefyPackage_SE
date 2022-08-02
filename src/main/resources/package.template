@@ -1,0 +1,10 @@
+{
+  "name": "Pipefy",
+  "label": "[[label]]",
+  "description": "[[description]]",
+  "group": "",
+  "artifactName": "",
+  "packageVersion": "",
+  "codeVersion": "",
+  "commands": []
+}

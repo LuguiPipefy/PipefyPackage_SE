@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/libs/command-processor-1.0.0-SNAPSHOT.jar" />
+        </processorPath>
+        <module name="PipefyPackage_SE.main" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="11">
+      <module name="A2019DemoPackage.main" target="11" />
+      <module name="A2019DemoPackage.test" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
