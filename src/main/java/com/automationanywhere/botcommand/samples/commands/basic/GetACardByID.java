@@ -90,7 +90,7 @@ public class GetACardByID {
         String loginURL = "https://api.pipefy.com/graphql";
         String requestBodyString = "";
         String queryGraphqlPipe="{\n" +
-                "                    card (id: #{input['"+cardID+"']}) {\n" +
+                "                    card (id: "+cardID+") {\n" +
                 "                      id\n" +
                 "                      uuid\n" +
                 "                      age\n" +
@@ -262,7 +262,7 @@ public class GetACardByID {
         try {
             String urlWithParams = loginURL;
 
-            if(pipefyToken.getInsecureString() != null){
+            if(pipefyToken != null){//.getInsecureString() != null){
                 requestBodyString = queryGraphqlPipe;
                 StringEntity entity = new StringEntity("query="+URLEncoder.encode(requestBodyString, StandardCharsets.UTF_8), ContentType.APPLICATION_FORM_URLENCODED);
                 HttpClient client = HttpClientBuilder.create().build();
@@ -286,8 +286,9 @@ public class GetACardByID {
                 JSONObject jsonResponse = new JSONObject(responseContent.toString());
 
                 if (jsonResponse.get("data") != null) {
+                    JSONObject jsonResponseData = new JSONObject(jsonResponse.get("data").toString());
                     //Returning Object ID for success
-                    result = jsonResponse.get("data").toString();
+                    result = jsonResponseData.get("card").toString();
                 } else {
                     //success wasnt returned, sending error message formatted cleanly for user
                     result = "ResponseCode: "+ Integer.toString(actualResponseCode)  +" Error Occured: "+jsonResponse.getString("errorCode")+", Error Message: "+ jsonResponse.getString(message);

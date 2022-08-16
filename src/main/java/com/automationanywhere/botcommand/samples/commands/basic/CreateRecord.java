@@ -27,7 +27,7 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 
 /**
  * <pre>
- * createCard allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
+ * createRecord allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
  *
  * </pre>
  *
@@ -40,13 +40,13 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 //CommandPks adds required information to be dispalable on GUI.
 @CommandPkg(
         //Unique name inside a package and label to display.
-        name = "createCard", label = "[[CreateCard.label]]",
-        node_label = "[[CreateCard.node_label]]", description = "[[CreateCard.description]]", icon = "pipefy.svg",
+        name = "createRecord", label = "[[CreateRecord.label]]",
+        node_label = "[[CreateRecord.node_label]]", description = "[[CreateRecord.description]]", icon = "pipefy.svg",
 
         //Return type information. return_type ensures only the right kind of variable is provided on the UI.
-        return_label = "[[CreateCard.return_label]]", return_description = "[[CreateCard.return_description]]", return_type = STRING, return_required = true)
+        return_label = "[[CreateRecord.return_label]]", return_description = "[[CreateRecord.return_description]]", return_type = STRING, return_required = true)
 
-public class CreateCard {
+public class CreateRecord {
     //Messages read from full qualified property file name and provide i18n capability.
     private static final Messages MESSAGES = MessagesFactory
             .getMessages("com.automationanywhere.botcommand.samples.messages");
@@ -59,7 +59,7 @@ public class CreateCard {
     public StringValue action(
             @Idx(index = "1", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[CreateCard.session.label]]", default_value_type = STRING, default_value = "Default")
+            @Pkg(label = "[[CreateRecord.session.label]]", default_value_type = STRING, default_value = "Default")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             String sessionName,
@@ -68,7 +68,7 @@ public class CreateCard {
             //Idx 1 would be displayed first, with a text box for entering the value.
             @Idx(index = "2", type = CREDENTIAL)//TEXT)
             //UI labels.
-            @Pkg(label = "[[CreateCard.pipefyToken.label]]")
+            @Pkg(label = "[[CreateRecord.pipefyToken.label]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             //String pipefyToken,
@@ -76,14 +76,14 @@ public class CreateCard {
 
             @Idx(index = "3", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[CreateCard.pipeID.label]]", description = "[[CreateCard.pipeID.description]]")
+            @Pkg(label = "[[CreateRecord.tableID.label]]", description = "[[CreateRecord.tableID.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-            String pipeID,
+            String tableID,
 
             @Idx(index = "4", type = DICTIONARY)
             //UI labels.
-            @Pkg(label = "[[CreateCard.cardFields.label]]", description = "[[CreateCard.cardFields.description]]")
+            @Pkg(label = "[[CreateRecord.recordFields.label]]", description = "[[CreateRecord.recordFields.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             //Map<String, String>  insertDictionary) {
@@ -98,7 +98,7 @@ public class CreateCard {
         //Create HashMap from session Map Object which was stored
         //Map<String, String> sessionValues = (Map<String, String>) sessionMap.get(sessionName);
         //if(sessionValues.get("sessionName") != sessionName)
-          //  throw new BotCommandException(MESSAGES.getString("Session " + sessionName + " does not exist."));
+        //  throw new BotCommandException(MESSAGES.getString("Session " + sessionName + " does not exist."));
         //Retrieve values from session Hashmap
         String loginURL = "https://api.pipefy.com/graphql";
         //String access_token =sessionValues.get("access_token");
@@ -118,12 +118,12 @@ public class CreateCard {
                 }
                 // go from JSON to String to Encode
                 requestBodyString = "mutation {\n" +
-                        "  createCard(\n" +
-                        "    input: {pipe_id: "+pipeID+", fields_attributes:"+fieldsString.toString().replace("]\"","\"]").replace("\"[","[\"").replace("\"field_value\"","field_value").replace("\"field_id\"","field_id")+
+                        "  createTableRecord(\n" +
+                        "    input: {table_id: "+tableID+", fields_attributes:"+fieldsString.toString().replace("]\"","\"]").replace("\"[","[\"").replace("\"field_value\"","field_value").replace("\"field_id\"","field_id")+
                         "}\n" +
                         "  ) {\n" +
                         "    clientMutationId\n" +
-                        "    card {\n" +
+                        "    table_record {\n" +
                         "      id\n" +
                         "    }\n" +
                         "  }\n" +
@@ -152,8 +152,8 @@ public class CreateCard {
 
                 if (jsonResponse.get("data") != null) {
                     JSONObject jsonResponseData = new JSONObject(jsonResponse.get("data").toString());
-                    JSONObject jsonResponseCreateCard = new JSONObject(jsonResponseData.get("createCard").toString());
-                    JSONObject jsonResponseCard = new JSONObject(jsonResponseCreateCard.get("card").toString());
+                    JSONObject jsonResponseCreateCard = new JSONObject(jsonResponseData.get("createTableRecord").toString());
+                    JSONObject jsonResponseCard = new JSONObject(jsonResponseCreateCard.get("table_record").toString());
                     //Returning Object ID for success
                     result = jsonResponseCard.get("id").toString();
                 } else {
@@ -163,15 +163,15 @@ public class CreateCard {
 
             } else {
                 //Set error message for empty dictionary
-                result = "Token is empty. Token is needed to create a card.";
+                result = "Token is empty. Token is needed to create a record.";
             }
         } catch (Exception e) {
             //including full payload of error so user has full understanding of response from the API
-            result = result + " Exception Occured: " + e.getMessage() + "|| Payload Sent:" + requestBodyString + " || Response Content: " + responseContent.toString() + " || Error Line: " + e.getStackTrace()[0].getLineNumber() ;
+            result = result + " Exception Occured: " + e.getMessage() + "|| Payload Sent:" + requestBodyString + " || Response Content: " + responseContent.toString() + " || Error Line: " + e.getStackTrace()[0].getLineNumber() ;;
         } finally {
             //Return StringValue.
-            return new StringValue(result.toString());
             //return new StringValue(result);
+            return new StringValue(result);
         }
     }
 

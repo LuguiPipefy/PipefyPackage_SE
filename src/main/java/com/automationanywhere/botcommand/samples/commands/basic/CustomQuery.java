@@ -1,12 +1,11 @@
 package com.automationanywhere.botcommand.samples.commands.basic;
 
-import com.automationanywhere.botcommand.data.Value;
 import com.automationanywhere.botcommand.data.impl.StringValue;
-import com.automationanywhere.botcommand.exception.BotCommandException;
 import com.automationanywhere.commandsdk.annotations.*;
 import com.automationanywhere.commandsdk.annotations.rules.NotEmpty;
 import com.automationanywhere.commandsdk.i18n.Messages;
 import com.automationanywhere.commandsdk.i18n.MessagesFactory;
+import com.automationanywhere.core.security.SecureString;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -17,15 +16,17 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static com.automationanywhere.commandsdk.model.AttributeType.DICTIONARY;
+import static com.automationanywhere.commandsdk.model.AttributeType.CREDENTIAL;
 import static com.automationanywhere.commandsdk.model.AttributeType.TEXT;
 import static com.automationanywhere.commandsdk.model.DataType.STRING;
 
 /**
  * <pre>
- * insertObject allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
+ * customQuery allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
  *
  * </pre>
  *
@@ -38,13 +39,15 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 //CommandPks adds required information to be dispalable on GUI.
 @CommandPkg(
         //Unique name inside a package and label to display.
-        name = "insertobject", label = "[[InsertObject.label]]",
-        node_label = "[[InsertObject.node_label]]", description = "[[InsertObject.description]]", icon = "pipefy.svg",
+        name = "customQuery", label = "[[CustomQuery.label]]",
+        node_label = "[[CustomQuery.node_label]]", description = "[[CustomQuery.description]]", icon = "pipefy.svg",
+
+
 
         //Return type information. return_type ensures only the right kind of variable is provided on the UI.
-        return_label = "[[InsertObject.return_label]]", return_description = "[[InsertObject.return_description]]", return_type = STRING, return_required = true)
+        return_label = "[[CustomQuery.return_label]]", return_description = "[[CustomQuery.return_description]]", return_type = STRING, return_required = true)
 
-public class InsertObject {
+public class CustomQuery {
     //Messages read from full qualified property file name and provide i18n capability.
     private static final Messages MESSAGES = MessagesFactory
             .getMessages("com.automationanywhere.botcommand.samples.messages");
@@ -57,62 +60,48 @@ public class InsertObject {
     public StringValue action(
             @Idx(index = "1", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[Authenticate.session.label]]", default_value_type = STRING, default_value = "Default")
+            @Pkg(label = "[[CustomQuery.session.label]]", default_value_type = STRING, default_value = "Default")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-                    String sessionName,
+            String sessionName,
 
-
-            @Idx(index = "2", type = TEXT)
+            //Idx 1 would be displayed first, with a text box for entering the value.
+            @Idx(index = "2", type = CREDENTIAL)
             //UI labels.
-            @Pkg(label = "[[UpdateObject.objectType.label]]", description = "[[UpdateObject.objectType.description]]")
+            @Pkg(label = "[[CustomQuery.pipefyToken.label]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-                    String objectType,
+            SecureString pipefyToken,
 
-
-            @Idx(index = "3", type = DICTIONARY)
+            @Idx(index = "3", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[InsertObject.insertJSON.label]]", description = "[[InsertObject.insertJSON.description]]")
+            @Pkg(label = "[[CustomQuery.customQueryInput.label]]", description = "[[CustomQuery.customQueryInput.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-                    Map<String, Value>  insertDictionary) {
+            String customQueryInput
+    ) {
         String line;
         //sobjects endpoint
-        String grantService = "/services/data/v49.0/sobjects/";
         String result = "";
         StringBuffer responseContent = new StringBuffer();
         String message = "";
         String errorCode = "";
 
-        //Create HashMap from session Map Object which was stored
-        Map<String, String> sessionValues = (Map<String, String>) sessionMap.get(sessionName);
-        if(sessionValues.get("sessionName") != sessionName)
-            throw new BotCommandException(MESSAGES.getString("Session " + sessionName + " does not exist."));
-        //Retrieve values from session Hashmap
-        String loginURL = sessionValues.get("baseLoginURL");
-        String access_token =sessionValues.get("access_token");
-
+        String loginURL = "https://api.pipefy.com/graphql";
         String requestBodyString = "";
+        String queryGraphqlPipe=customQueryInput;
         try {
-            String urlWithParams = loginURL +
-                    grantService + objectType;
+            String urlWithParams = loginURL;
 
-            if(insertDictionary.size() > 0){
-                //Building JSON with input values to later be converted to StringEntity for URL Encoding
-                JSONObject insertJSON = new JSONObject();
-                for (Map.Entry<String,Value> entry: insertDictionary.entrySet())
-                    insertJSON.put(entry.getKey(),entry.getValue());
-                // go from JSON to String to Encode
-                requestBodyString = insertJSON.toString();
-                StringEntity entity = new StringEntity(requestBodyString, ContentType.APPLICATION_FORM_URLENCODED);
-
-                //Note: Using apache HTTP client this time
+            if(pipefyToken != null){//.getInsecureString() != null){
+                requestBodyString = queryGraphqlPipe;
+                StringEntity entity = new StringEntity("query="+URLEncoder.encode(requestBodyString, StandardCharsets.UTF_8), ContentType.APPLICATION_FORM_URLENCODED);
                 HttpClient client = HttpClientBuilder.create().build();
                 HttpPost request = new HttpPost(urlWithParams);
-                request.setHeader("Content-type", "application/json");
-                request.setHeader("Authorization", "Bearer " + access_token);
+                request.addHeader("Authorization", "Bearer " + pipefyToken.getInsecureString());
+                request.addHeader("Content-Type", "application/x-www-form-urlencoded");
                 request.setEntity(entity);
+
                 //Execute HTTP Request
                 HttpResponse response = client.execute(request);
                 int actualResponseCode = response.getStatusLine().getStatusCode();
@@ -127,9 +116,9 @@ public class InsertObject {
                 //Assuming JSON response
                 JSONObject jsonResponse = new JSONObject(responseContent.toString());
 
-                if (jsonResponse.getBoolean("success") == true) {
+                if (jsonResponse.get("data") != null) {
                     //Returning Object ID for success
-                    result = jsonResponse.getString("id");
+                    result = jsonResponse.get("data").toString();
                 } else {
                     //success wasnt returned, sending error message formatted cleanly for user
                     result = "ResponseCode: "+ Integer.toString(actualResponseCode)  +" Error Occured: "+jsonResponse.getString("errorCode")+", Error Message: "+ jsonResponse.getString(message);
@@ -137,13 +126,14 @@ public class InsertObject {
 
             } else {
                 //Set error message for empty dictionary
-                result = "Dictionary is empty. Add at least one object property to perform an insert.";
+                result = "Token is empty. Token is needed to send your query.";
             }
         } catch (Exception e) {
             //including full payload of error so user has full understanding of response from the API
             result = result + " Exception Occured: " + e.getMessage() + "|| Payload Sent:" + requestBodyString + " || Response Content: " + responseContent.toString() ;
         } finally {
             //Return StringValue.
+            //return new StringValue(result);
             return new StringValue(result);
         }
     }
