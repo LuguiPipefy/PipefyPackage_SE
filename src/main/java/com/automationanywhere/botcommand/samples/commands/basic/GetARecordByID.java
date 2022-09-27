@@ -26,7 +26,7 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 
 /**
  * <pre>
- * getACardByID allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
+ * getARecordByID allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
  *
  * </pre>
  *
@@ -39,15 +39,15 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 //CommandPks adds required information to be dispalable on GUI.
 @CommandPkg(
         //Unique name inside a package and label to display.
-        name = "getACardByID", label = "[[GetACardByID.label]]",
-        node_label = "[[GetACardByID.node_label]]", description = "[[GetACardByID.description]]", icon = "pipefy.svg",
+        name = "getARecordByID", label = "[[GetARecordByID.label]]",
+        node_label = "[[GetARecordByID.node_label]]", description = "[[GetARecordByID.description]]", icon = "pipefy.svg",
 
 
 
         //Return type information. return_type ensures only the right kind of variable is provided on the UI.
-        return_label = "[[GetACardByID.return_label]]", return_description = "[[GetACardByID.return_description]]", return_type = STRING, return_required = true)
+        return_label = "[[GetARecordByID.return_label]]", return_description = "[[GetARecordByID.return_description]]", return_type = STRING, return_required = true)
 
-public class GetACardByID {
+public class GetARecordByID {
     //Messages read from full qualified property file name and provide i18n capability.
     private static final Messages MESSAGES = MessagesFactory
             .getMessages("com.automationanywhere.botcommand.samples.messages");
@@ -60,7 +60,7 @@ public class GetACardByID {
     public StringValue action(
             @Idx(index = "1", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[GetACardByID.session.label]]", default_value_type = STRING, default_value = "Default")
+            @Pkg(label = "[[GetARecordByID.session.label]]", default_value_type = STRING, default_value = "Default")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             String sessionName,
@@ -68,17 +68,17 @@ public class GetACardByID {
             //Idx 1 would be displayed first, with a text box for entering the value.
             @Idx(index = "2", type = CREDENTIAL)
             //UI labels.
-            @Pkg(label = "[[GetACardByID.pipefyToken.label]]")
+            @Pkg(label = "[[GetARecordByID.pipefyToken.label]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             SecureString pipefyToken,
 
             @Idx(index = "3", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[GetACardByID.cardID.label]]", description = "[[GetACardByID.cardID.description]]")
+            @Pkg(label = "[[GetARecordByID.recordID.label]]", description = "[[GetARecordByID.recordID.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-            String cardID
+            String recordID
     ) {
         String line;
         //sobjects endpoint
@@ -90,7 +90,7 @@ public class GetACardByID {
         String loginURL = "https://api.pipefy.com/graphql";
         String requestBodyString = "";
         String queryGraphqlPipe="{\n" +
-                "                    card (id: "+cardID+") {\n" +
+                "                    card (id: "+recordID+") {\n" +
                 "                      id\n" +
                 "                      uuid\n" +
                 "                      age\n" +

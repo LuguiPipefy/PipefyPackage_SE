@@ -27,7 +27,7 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 
 /**
  * <pre>
- * createRecord allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
+ * updateFieldsValues allows for inserting values into Pipefy's Cards.
  *
  * </pre>
  *
@@ -40,13 +40,13 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 //CommandPks adds required information to be dispalable on GUI.
 @CommandPkg(
         //Unique name inside a package and label to display.
-        name = "createRecord", label = "[[CreateRecord.label]]",
-        node_label = "[[CreateRecord.node_label]]", description = "[[CreateRecord.description]]", icon = "pipefy.svg",
+        name = "updateFieldsValues", label = "[[UpdateFieldsValues.label]]",
+        node_label = "[[UpdateFieldsValues.node_label]]", description = "[[UpdateFieldsValues.description]]", icon = "pipefy.svg",
 
         //Return type information. return_type ensures only the right kind of variable is provided on the UI.
-        return_label = "[[CreateRecord.return_label]]", return_description = "[[CreateRecord.return_description]]", return_type = STRING, return_required = true)
+        return_label = "[[UpdateFieldsValues.return_label]]", return_description = "[[UpdateFieldsValues.return_description]]", return_type = STRING, return_required = true)
 
-public class CreateRecord {
+public class UpdateFieldsValues {
     //Messages read from full qualified property file name and provide i18n capability.
     private static final Messages MESSAGES = MessagesFactory
             .getMessages("com.automationanywhere.botcommand.samples.messages");
@@ -59,7 +59,7 @@ public class CreateRecord {
     public StringValue action(
             @Idx(index = "1", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[CreateRecord.session.label]]", default_value_type = STRING, default_value = "Default")
+            @Pkg(label = "[[UpdateFieldsValues.session.label]]", default_value_type = STRING, default_value = "Default")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             String sessionName,
@@ -68,7 +68,7 @@ public class CreateRecord {
             //Idx 1 would be displayed first, with a text box for entering the value.
             @Idx(index = "2", type = CREDENTIAL)//TEXT)
             //UI labels.
-            @Pkg(label = "[[CreateRecord.pipefyToken.label]]")
+            @Pkg(label = "[[UpdateFieldsValues.pipefyToken.label]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             //String pipefyToken,
@@ -76,14 +76,14 @@ public class CreateRecord {
 
             @Idx(index = "3", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[CreateRecord.tableID.label]]", description = "[[CreateRecord.tableID.description]]")
+            @Pkg(label = "[[UpdateFieldsValues.cardID.label]]", description = "[[UpdateFieldsValues.cardID.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-            String tableID,
+            String cardID,
 
             @Idx(index = "4", type = DICTIONARY)
             //UI labels.
-            @Pkg(label = "[[CreateRecord.recordFields.label]]", description = "[[CreateRecord.recordFields.description]]")
+            @Pkg(label = "[[UpdateFieldsValues.cardFields.label]]", description = "[[UpdateFieldsValues.cardFields.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             //Map<String, String>  insertDictionary) {
@@ -117,17 +117,17 @@ public class CreateRecord {
                     fieldsString.push(insertJSON.toString());
                 }
                 // go from JSON to String to Encode
-                requestBodyString = "mutation {\n" +
-                        "  createTableRecord(\n" +
-                        "    input: {table_id: "+tableID+", fields_attributes:"+fieldsString.toString().replace("]\"","\"]").replace("\"[","[\"").replace("\"field_value\"","field_value").replace("\"field_id\"","field_id")+
-                        "}\n" +
-                        "  ) {\n" +
-                        "    clientMutationId\n" +
-                        "    table_record {\n" +
-                        "      id\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}\n";
+                requestBodyString = "mutation{updateFieldsValues(input:{\n" +
+                        "                  nodeId: "+cardID+",\n" +
+                        "                  values:"+fieldsString.toString().replace("]\"","\"]").replace("\"[","[\"").replace("\"field_value\"","value").replace("\"field_id\"","fieldId")+
+                        " }){\n" +
+                        "                   clientMutationId\n" +
+                        "                   success\n" +
+                        "                   userErrors{\n" +
+                        "                  field\n" +
+                        "                  message\n" +
+                        "                  }\n" +
+                        "                 }}";
                 StringEntity entity = new StringEntity("query="+URLEncoder.encode(requestBodyString, StandardCharsets.UTF_8), ContentType.APPLICATION_FORM_URLENCODED);
                 HttpClient client = HttpClientBuilder.create().build();
                 HttpPost request = new HttpPost(urlWithParams);
@@ -151,11 +151,8 @@ public class CreateRecord {
                 JSONObject jsonResponse = new JSONObject(responseContent.toString());
 
                 if (jsonResponse.get("data") != null) {
-                    JSONObject jsonResponseData = new JSONObject(jsonResponse.get("data").toString());
-                    JSONObject jsonResponseCreateCard = new JSONObject(jsonResponseData.get("createTableRecord").toString());
-                    JSONObject jsonResponseCard = new JSONObject(jsonResponseCreateCard.get("table_record").toString());
                     //Returning Object ID for success
-                    result = jsonResponseCard.get("id").toString();
+                    result = jsonResponse.get("data").toString();
                 } else {
                     //success wasnt returned, sending error message formatted cleanly for user
                     result = "ResponseCode: "+ Integer.toString(actualResponseCode)  +" Error Occured: "+jsonResponse.getString("errorCode")+", Error Message: "+ jsonResponse.getString(message);
@@ -163,15 +160,15 @@ public class CreateRecord {
 
             } else {
                 //Set error message for empty dictionary
-                result = "Token is empty. Token is needed to create a record.";
+                result = "Token is empty. Token is needed to create a card.";
             }
         } catch (Exception e) {
             //including full payload of error so user has full understanding of response from the API
-            result = result + " Exception Occured: " + e.getMessage() + "|| Payload Sent:" + requestBodyString + " || Response Content: " + responseContent.toString() + " || Error Line: " + e.getStackTrace()[0].getLineNumber() ;;
+            result = result + " Exception Occured: " + e.getMessage() + "|| Payload Sent:" + requestBodyString + " || Response Content: " + responseContent.toString() + " || Error Line: " + e.getStackTrace()[0].getLineNumber() ;
         } finally {
             //Return StringValue.
+            return new StringValue(result.toString());
             //return new StringValue(result);
-            return new StringValue(result);
         }
     }
 

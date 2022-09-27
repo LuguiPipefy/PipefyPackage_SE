@@ -30,7 +30,7 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
  *
  * </pre>
  *
- * @author Micah Smith
+ * @author Luis Guilherme de Azevedo e Silva
  */
 
 //BotCommand makes a class eligible for being considered as an action.

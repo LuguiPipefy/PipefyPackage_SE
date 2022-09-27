@@ -26,11 +26,11 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 
 /**
  * <pre>
- * getACardByID allows for inserting salesforce objects. ObjectID is returned on successful response as is a success boolean value
+ * GetPhaseCards allows you to get cards from a specific Phase.
  *
  * </pre>
  *
- * @author Luis Guilherme de Azevedo e Silva
+ * @author Luis Guilherme de Azevedo e Silva / João Ferreira
  */
 
 //BotCommand makes a class eligible for being considered as an action.
@@ -39,15 +39,15 @@ import static com.automationanywhere.commandsdk.model.DataType.STRING;
 //CommandPks adds required information to be dispalable on GUI.
 @CommandPkg(
         //Unique name inside a package and label to display.
-        name = "getACardByID", label = "[[GetACardByID.label]]",
-        node_label = "[[GetACardByID.node_label]]", description = "[[GetACardByID.description]]", icon = "pipefy.svg",
+        name = "GetPhaseCards", label = "[[GetPhaseCards.label]]",
+        node_label = "[[GetPhaseCards.node_label]]", description = "[[GetPhaseCards.description]]", icon = "pipefy.svg",
 
 
 
         //Return type information. return_type ensures only the right kind of variable is provided on the UI.
-        return_label = "[[GetACardByID.return_label]]", return_description = "[[GetACardByID.return_description]]", return_type = STRING, return_required = true)
+        return_label = "[[GetPhaseCards.return_label]]", return_description = "[[GetPhaseCards.return_description]]", return_type = STRING, return_required = true)
 
-public class GetACardByID {
+public class GetPhaseCards {
     //Messages read from full qualified property file name and provide i18n capability.
     private static final Messages MESSAGES = MessagesFactory
             .getMessages("com.automationanywhere.botcommand.samples.messages");
@@ -60,7 +60,7 @@ public class GetACardByID {
     public StringValue action(
             @Idx(index = "1", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[GetACardByID.session.label]]", default_value_type = STRING, default_value = "Default")
+            @Pkg(label = "[[GetPhaseCards.session.label]]", default_value_type = STRING, default_value = "Default")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             String sessionName,
@@ -68,17 +68,18 @@ public class GetACardByID {
             //Idx 1 would be displayed first, with a text box for entering the value.
             @Idx(index = "2", type = CREDENTIAL)
             //UI labels.
-            @Pkg(label = "[[GetACardByID.pipefyToken.label]]")
+            @Pkg(label = "[[GetPhaseCards.pipefyToken.label]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
             SecureString pipefyToken,
 
             @Idx(index = "3", type = TEXT)
             //UI labels.
-            @Pkg(label = "[[GetACardByID.cardID.label]]", description = "[[GetACardByID.cardID.description]]")
+            @Pkg(label = "[[GetPhaseCards.phaseId.label]]", description = "[[GetPhaseCards.phaseId.description]]")
             //Ensure that a validation error is thrown when the value is null.
             @NotEmpty
-            String cardID
+            String phaseID
+
     ) {
         String line;
         //sobjects endpoint
@@ -89,94 +90,22 @@ public class GetACardByID {
 
         String loginURL = "https://api.pipefy.com/graphql";
         String requestBodyString = "";
-        String queryGraphqlPipe="{\n" +
-                "                    card (id: "+cardID+") {\n" +
+        String queryGraphqlPipe="query{\n" +
+                "          phase(id: "+ phaseID +") {\n" +
+                "            id\n" +
+                "            cards_count\n" +
+                "            cards {\n" +
+                "              edges{\n" +
+                "                node{\n" +
                 "                      id\n" +
-                "                      uuid\n" +
                 "                      age\n" +
-                "                      createdBy{\n" +
-                "                       id\n" +
-                "                       username\n" +
-                "                       email\n" +
-                "                       phone\n" +
-                "                       name\n" +
-                "                       locale\n" +
-                "                       displayName\n" +
-                "                       timezone\n" +
-                "                     }\n" +
-                "                      attachments{\n" +
-                "                          createdAt\n" +
-                "                          createdBy {\n" +
-                "                            id\n" +
-                "                            name\n" +
-                "                          }\n" +
-                "                          field {\n" +
-                "                            id\n" +
-                "                            label\n" +
-                "                          }\n" +
-                "                          path\n" +
-                "                          phase {\n" +
-                "                            id\n" +
-                "                            name\n" +
-                "                          }\n" +
-                "                          url\n" +
-                "                        }\n" +
                 "                      assignees {\n" +
                 "                        name\n" +
                 "                        email\n" +
-                "                        phone\n" +
                 "                        id\n" +
                 "                        locale\n" +
                 "                        timeZone\n" +
                 "                      }\n" +
-                "                       inbox_emails{\n" +
-                "                       bcc\n" +
-                "                       body\n" +
-                "                       cc\n" +
-                "                       from\n" +
-                "                       fromName\n" +
-                "                       id\n" +
-                "                       main_to\n" +
-                "                       message_id\n" +
-                "                       sent_via_automation\n" +
-                "                       state\n" +
-                "                       subject\n" +
-                "                       to\n" +
-                "                       updated_at\n" +
-                "                       user {\n" +
-                "                         id\n" +
-                "                       }\n" +
-                "                       attachments {\n" +
-                "                         id\n" +
-                "                         fileUrl\n" +
-                "                         filename\n" +
-                "                         public_url\n" +
-                "                       }\n" +
-                "                       }\n" +
-                "                        parent_relations{\n" +
-                "                          name\n" +
-                "                          pipe {\n" +
-                "                            id\n" +
-                "                          }\n" +
-                "                          repo\n" +
-                "                          cards{\n" +
-                "                            id\n" +
-                "                            createdAt\n" +
-                "                            title\n" +
-                "                          }\n" +
-                "                        }\n" +
-                "                        child_relations{\n" +
-                "                          name\n" +
-                "                          pipe {\n" +
-                "                            id\n" +
-                "                          }\n" +
-                "                          repo\n" +
-                "                          cards{\n" +
-                "                            id\n" +
-                "                            createdAt\n" +
-                "                            title\n" +
-                "                          }\n" +
-                "                        }\n" +
                 "                      comments {\n" +
                 "                        id\n" +
                 "                        text\n" +
@@ -185,6 +114,13 @@ public class GetACardByID {
                 "                      }\n" +
                 "                      comments_count\n" +
                 "                      createdAt\n" +
+                "                      createdBy {\n" +
+                "                        email\n" +
+                "                        id\n" +
+                "                        locale\n" +
+                "                        name\n" +
+                "\t\t\t\t\t\t            timeZone\n" +
+                "                      }\n" +
                 "                      creatorEmail\n" +
                 "                      current_phase {\n" +
                 "                        id\n" +
@@ -204,45 +140,58 @@ public class GetACardByID {
                 "                        emailAddress\n" +
                 "                        id\n" +
                 "                        name\n" +
-                "\n" +
-                "                          phases{\n" +
-                "                            id\n" +
-                "                            name\n" +
-                "                            fields{\n" +
-                "                              id\n" +
-                "                              label\n" +
-                "                              description\n" +
-                "                              type\n" +
-                "                            }\n" +
-                "                          }\n" +
-                "                          start_form_fields{\n" +
+                "                        phases{\n" +
+                "                          id\n" +
+                "                          name\n" +
+                "                          fields{\n" +
                 "                            id\n" +
                 "                            label\n" +
                 "                            description\n" +
                 "                            type\n" +
                 "                          }\n" +
-                "\n" +
+                "                        }\n" +
+                "                        start_form_fields{\n" +
+                "                          id\n" +
+                "                          label\n" +
+                "                          description\n" +
+                "                          type\n" +
+                "                        }\n" +
                 "                      }\n" +
                 "                      started_current_phase_at\n" +
                 "                      title\n" +
                 "                      updated_at\n" +
                 "                      url\n" +
                 "                      fields {\n" +
-                "                        field{id}\n" +
-                "                        array_value\n" +
+                "                        field{\n" +
+                "                          label\n" +
+                "                          id\n" +
+                "                          type\n" +
+                "                        }\n" +
                 "                        name\n" +
                 "                        value\n" +
+                "                        array_value\n" +
                 "                        report_value\n" +
                 "                        date_value\n" +
                 "                        datetime_value\n" +
                 "                        float_value\n" +
                 "                        filled_at\n" +
                 "                        updated_at\n" +
+                "                        phase_field {\n" +
+                "                          id\n" +
+                "                          label\n" +
+                "                          phase {\n" +
+                "                            id\n" +
+                "                            name\n" +
+                "                          }\n" +
+                "                        }\n" +
+                "                        label_values {\n" +
+                "                          id\n" +
+                "                          name\n" +
+                "                        }\n" +
                 "                        assignee_values {\n" +
-                "                              id\n" +
-                "                              email\n" +
-                "                            }\n" +
-                "\n" +
+                "                          id\n" +
+                "                          email\n" +
+                "                        }\n" +
                 "                      }\n" +
                 "                      phases_history {\n" +
                 "                        duration\n" +
@@ -250,7 +199,6 @@ public class GetACardByID {
                 "                          id\n" +
                 "                          name\n" +
                 "                        }\n" +
-                "\n" +
                 "                        firstTimeIn\n" +
                 "                        lastTimeIn\n" +
                 "                        lastTimeOut\n" +
@@ -258,11 +206,13 @@ public class GetACardByID {
                 "                        became_late\n" +
                 "                      }\n" +
                 "                    }\n" +
-                "                  }";
+                "                    }\n" +
+                "                    }}\n" +
+                "        }";
         try {
             String urlWithParams = loginURL;
 
-            if(pipefyToken != null){//.getInsecureString() != null){
+            if(pipefyToken.getInsecureString() != null){
                 requestBodyString = queryGraphqlPipe;
                 StringEntity entity = new StringEntity("query="+URLEncoder.encode(requestBodyString, StandardCharsets.UTF_8), ContentType.APPLICATION_FORM_URLENCODED);
                 HttpClient client = HttpClientBuilder.create().build();
@@ -286,9 +236,8 @@ public class GetACardByID {
                 JSONObject jsonResponse = new JSONObject(responseContent.toString());
 
                 if (jsonResponse.get("data") != null) {
-                    JSONObject jsonResponseData = new JSONObject(jsonResponse.get("data").toString());
                     //Returning Object ID for success
-                    result = jsonResponseData.get("card").toString();
+                    result = jsonResponse.get("data").toString();
                 } else {
                     //success wasnt returned, sending error message formatted cleanly for user
                     result = "ResponseCode: "+ Integer.toString(actualResponseCode)  +" Error Occured: "+jsonResponse.getString("errorCode")+", Error Message: "+ jsonResponse.getString(message);
